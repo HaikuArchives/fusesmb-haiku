@@ -970,21 +970,25 @@ static void fusesmb_destroy(void *private_data)
 
 }
 
-static int fusesmb_ioctl(const char*, int, void* arg, struct fuse_file_info*, unsigned int, void*)
+static int fusesmb_ioctl(const char*, int cmd, void* arg, struct fuse_file_info*, unsigned int, void*)
 {
-    struct fs_info* info = (struct fs_info*)arg;
-    memset(info, 0, sizeof(*info));
-    info->flags = B_FS_IS_PERSISTENT | B_FS_IS_SHARED
-        | B_FS_HAS_ATTR | B_FS_HAS_MIME;
+    if (cmd == FUSE_HAIKU_GET_DRIVE_INFO) {
+        struct fs_info* info = (struct fs_info*)arg;
+        memset(info, 0, sizeof(*info));
+        info->flags = B_FS_IS_PERSISTENT | B_FS_IS_SHARED
+            | B_FS_HAS_ATTR | B_FS_HAS_MIME;
         // TODO: find out if read-only
-    info->block_size = 4096;
-    info->io_size = 128 * 1024;
-    info->total_blocks = (100ULL * 1024 * 1024 * 1024) / info->block_size;
-    info->free_blocks = info->total_blocks;
-    info->total_nodes = 100;
-    info->free_nodes = 100;
-    strlcpy(info->volume_name, "SMB Network", sizeof(info->volume_name));
-    return 0;
+        info->block_size = 4096;
+        info->io_size = 128 * 1024;
+        info->total_blocks = (100ULL * 1024 * 1024 * 1024) / info->block_size;
+        info->free_blocks = info->total_blocks;
+        info->total_nodes = 100;
+        info->free_nodes = 100;
+        strlcpy(info->volume_name, "SMB Network", sizeof(info->volume_name));
+        return 0;
+    }
+
+    return ENOSYS;
 }
 
 static struct fuse_operations fusesmb_oper = {
