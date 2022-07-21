@@ -323,7 +323,7 @@ int config_read_section_keys(config_t *cf, const char *section, stringlist_t **v
                 break;
             }
             char buf[4096];
-            strncpy(buf, sl_item(cf->lines, i), 4096);
+            strlcpy(buf, sl_item(cf->lines, i), 4096);
             char *sep = index(buf, '=');
             if (sep == NULL)
                 continue;

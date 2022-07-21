@@ -80,7 +80,7 @@ static int nmblookup(const char *ip_server, char *output, size_t outputsize)
                 *sep = '\0';
                 sep--;
             }
-            strncpy(output, start, outputsize);
+            strlcpy(output, start, outputsize);
         }
 
     }
