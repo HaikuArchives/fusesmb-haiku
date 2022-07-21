@@ -23,7 +23,6 @@
 #include "config.h"
 
 #include <fs_info.h>
-#define HAS_FUSE_HAIKU_EXTENSIONS
 
 #include "haiku/support.h"
 
@@ -956,7 +955,8 @@ static int fusesmb_removexattr(const char* path, const char* name)
 
 static void *fusesmb_init(struct fuse_conn_info* info)
 {
-    (void)info;
+    // Announce we support Haiku specific FUSE extensions
+    info->want = FUSE_CAP_HAIKU_FUSE_EXTENSIONS;
     if (0 != pthread_create(&cleanup_thread, NULL, smb_purge_thread, NULL))
         exit(EXIT_FAILURE);
     return NULL;
@@ -970,8 +970,9 @@ static void fusesmb_destroy(void *private_data)
 
 }
 
-static int fusesmb_getfsinfo(struct fs_info* info)
+static int fusesmb_ioctl(const char*, int, void* arg, struct fuse_file_info*, unsigned int, void*)
 {
+    struct fs_info* info = (struct fs_info*)arg;
     memset(info, 0, sizeof(*info));
     info->flags = B_FS_IS_PERSISTENT | B_FS_IS_SHARED
         | B_FS_HAS_ATTR | B_FS_HAS_MIME;
@@ -1020,19 +1021,26 @@ static struct fuse_operations fusesmb_oper = {
     fusesmb_destroy,		// destroy
     NULL,					// access
     fusesmb_create,			// create
-	NULL,					// ftruncate
-	NULL,					// fgetattr
-	NULL,					// lock
-	NULL,					// utimens
-	NULL,					// bmap
-    fusesmb_getfsinfo		// get_fs_info
+    NULL,					// ftruncate
+    NULL,					// fgetattr
+    NULL,					// lock
+    NULL,					// utimens
+    NULL,					// bmap
+    0,						// flag_nullpath_ok
+    0,						// flag_nopath
+    0,						// flag_utile_omit_ok
+    0,						// flag_reserved_ok
+    fusesmb_ioctl,			// ioctl
+    NULL,					// poll
+    NULL,					// write_buf
+    NULL,					// read_buf
+    NULL,					// flock
+    NULL,					// fallocate
 };
 
 
 int main(int argc, char *argv[])
 {
-	gHasHaikuFuseExtensions = 1;
-
     /* Check if the directory for smbcache exists and if not so create it */
     int status = create_settings_dir();
     if (status != 0)
