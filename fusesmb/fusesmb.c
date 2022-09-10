@@ -947,7 +947,7 @@ static int fusesmb_listxattr(const char* path, char* list, size_t size)
 
 static int fusesmb_removexattr(const char* path, const char* name)
 {
-	printf("fusesmb_removexattr path=%s\n", path);
+    printf("fusesmb_removexattr path=%s\n", path);
     (void)path;
     (void)name;
     return -EACCES;
@@ -970,13 +970,13 @@ static void fusesmb_destroy(void *private_data)
 
 }
 
-static int fusesmb_ioctl(const char*, int cmd, void* arg, struct fuse_file_info*, unsigned int, void*)
+static int fusesmb_ioctl(const char*, int cmd, void* arg, struct fuse_file_info*,
+    unsigned int size, void*)
 {
-    if (cmd == FUSE_HAIKU_GET_DRIVE_INFO) {
+    if ((cmd == FUSE_HAIKU_GET_DRIVE_INFO) && (size == sizeof(struct fs_info))) {
         struct fs_info* info = (struct fs_info*)arg;
         memset(info, 0, sizeof(*info));
-        info->flags = B_FS_IS_PERSISTENT | B_FS_IS_SHARED
-            | B_FS_HAS_ATTR | B_FS_HAS_MIME;
+        info->flags = B_FS_IS_PERSISTENT | B_FS_IS_SHARED | B_FS_HAS_ATTR | B_FS_HAS_MIME;
         // TODO: find out if read-only
         info->block_size = 4096;
         info->io_size = 128 * 1024;
